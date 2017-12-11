@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="./bootstrap-3.3.7-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="root">
+    <div class="col-md-2">
+        <div class="col-md-12 col-xs-12" style="margin-top:20px;">
+            <div class="row">
+                <button type="button" class="btn btn-default btn-sm">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Left
+                </button>
+                <button type="button" class="btn btn-default btn-sm">
+                    <span class="glyphicon glyphicon-chevron-right"></span> Left
+                </button>
+            </div>
+                <tree
+                    class="tree"
+                    :model="treeData">
+                </tree>
+
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="col-md-12 col-xs-12" style="margin-top:20px;">
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon3">Current Position</span>
+                <input type="text" class="form-control" :placeholder="CurrentLocation" v-model="UserInput">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" @click="getTree(UserInput)">Go!</button>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-12 col-xs-12" style="margin-top:20px;">
+            <v-table :filelist="filelist"></v-table>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="Vue/vue.js"></script>
+<script src="Vue/vuex.js"></script>
+
+
+
+<script type="text/x-template" id="tree-template">
+    <li class = 'list-group-item'>
+        <div
+                :class="sidebar"
+                @click="toggle">
+            {{model.root}}
+            <!--
+            <span v-if="isFolder">[{{open ? '-' : '+'}}]</span>
+            -->
+        </div>
+        <ul  v-if="isFolder">
+            <tree
+                    class="sidebar list-group "
+                    v-for="model in model.subfolder"
+                    :model="model">
+            </tree>
+        </ul>
+    </li>
+</script>
+
+
+<script type="text/x-template" id="table">
+    <table class="table table-bordered table-hover table-striped table-foldersystem">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Operation</th>
+
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr v-for="file in filelist">
+            <td><i class="glyphicon glyphicon-film"></i></td>
+            <td>{{file.filename}}</td>
+            <td><button type="button" class="btn btn-xs btn-default">Default</button></td>
+        </tr>
+
+
+
+        </tbody>
+    </table>
+
+</script>
+<script>
+    Vue.component('tree', {
+        template: '#tree-template',
+        props: {
+            model: Object
+        },
+        data: function () {
+            return {
+                open: false
+            }
+        },
+        computed: {
+            isFolder: function () {
+                return this.model.subfolder&&
+                    this.model.subfolder.length
+            }
+        },
+        methods: {
+            toggle: function () {
+                if (this.isFolder) {
+                    this.open = !this.open
+                }
+            },
+        }
+    });
+
+    var listdata = [
+            {filename:'app.js'},
+            {filename:'node_modules'},
+            {filename:'app.js'},
+            {filename:'app.js'},
+        ]
+
+    Vue.component('v-table', {
+        template: '#table',
+        props: {
+            filelist:''
+        }
+    })
+    const store = new Vuex.Store({
+        state: {
+            filelist: listdata,
+            current_location:'C:/',
+        }
+
+    })
+    var vm = new Vue({
+        el: '#root',
+        store,
+        methods:{
+            getroot: function (path) {
+                let vm = this;
+                axios.get(path)
+                    .then(function (response) {
+                        console.log(response);
+                        vm.$store.state.filelist = response.data
+                    })
+            },
+            getUserInput: function (path) {
+              let vm = this;
+                axios.get('/api/userInput', {
+                    params: {
+                        path: path
+                    }
+                })
+                    .then(function (response) {
+                        vm.$store.state.filelist = response.data;
+                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            },
+            getTree: function (path) {
+                let vm = this;
+                this.getUserInput(path);
+                axios.get('/api/visit_dir', {
+                    params: {
+                        path: path
+                    }
+                })
+                    .then(function (response) {
+                        vm.treeData = response.data;
+                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+
+        },
+        adfcomputed: {
+            filelist () {
+                return this.$store.state.filelist
+            },
+            CurrentLocation(){
+                return this.$store.state.current_location
+            },
+        },
+        created: function () {
+            // `this` points to the vm instance
+            this.getroot('/api/root');
+            this.$store.state.current_location = '/home/willvegapunk/Programming/WebProgramming/OS_FinalProject/OS_final/backend'
+            this.UserInput = this.$store.state.current_location
+        },
+        data:{
+            UserInput:'',
+            treeData:''
+        }
+    })
+
+
+</script>
+
+
+</body>
+</html>
