@@ -184,7 +184,7 @@
             },
 
         },
-        adfcomputed: {
+        computed: {
             filelist () {
                 return this.$store.state.filelist
             },
@@ -195,7 +195,7 @@
         created: function () {
             // `this` points to the vm instance
             this.getroot('/api/root');
-            this.$store.state.current_location = '/home/willvegapunk/Programming/WebProgramming/OS_FinalProject/OS_final/backend'
+            this.$store.state.current_location = "/home/ubuntu/OS_FP_FileManager/OS_final"
             this.UserInput = this.$store.state.current_location
         },
         data:{

@@ -58,7 +58,7 @@ app.get('/api/visit_dir',function (req,res) {
 
     let root_obj = {
         root:current_path_arr[1],
-        path:current_path,
+        path:'/'+ current_path_arr[1],
         subfolder:[]
     };
 
@@ -86,7 +86,7 @@ app.get('/api/root',function (req,res) {
     // console.log(req);
 
 
-    fs.readdir('/home/willvegapunk/Programming/WebProgramming/OS_FinalProject/OS_final/backend', function(err, items) {
+    fs.readdir('/home/ubuntu/OS_FP_FileManager/OS_final/', function(err, items) {
         console.log(items);
         let list = [];
         for (var i =0;i<items.length;++i){
