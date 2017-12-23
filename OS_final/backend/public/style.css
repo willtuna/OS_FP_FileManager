@@ -89,9 +89,22 @@ div.treeview ul:first-child:before {
     padding:0px 0px 0px 0px;
     outline: 0;
 }
-
 ul {
-    width: 120px;
+    width: 140px;
     padding-left: 0em;
     line-height: 1.5em;
+}
+
+.list-group-item a:hover{
+    background: #e8500e;
+    color:#fff;
+}
+.list-group-item li:hover{
+    background: #e8500e;
+    cursor: pointer:
+}
+.col-md-2{
+    position:relative;
+    left: 0px;
+    top:0em;
 }

@@ -15,13 +15,15 @@
                     <span class="glyphicon glyphicon-chevron-left"></span> Left
                 </button>
                 <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-chevron-right"></span> Left
+                    <span class="glyphicon glyphicon-chevron-right"></span> Right
                 </button>
             </div>
+	    <div class="sidebar">
                 <tree
                     class="tree"
                     :model="treeData">
                 </tree>
+	    </div>
 
         </div>
     </div>
@@ -50,16 +52,15 @@
 <script type="text/x-template" id="tree-template">
     <li class = 'list-group-item'>
         <div
-                :class="sidebar"
+                :class="tree"
                 @click="toggle">
+	    <a role="menuitem" href="#">
             {{model.root}}
-            <!--
-            <span v-if="isFolder">[{{open ? '-' : '+'}}]</span>
-            -->
+	    </a>
         </div>
         <ul  v-if="isFolder">
             <tree
-                    class="sidebar list-group "
+                    class="tree list-group-item "
                     v-for="model in model.subfolder"
                     :model="model">
             </tree>

@@ -26,7 +26,13 @@ function visit_dir(obj){
     files.forEach(function (file,index) {
         file_full_path = path.join(dir,file);
         if(fs.lstatSync(file_full_path).isDirectory()) {
-            subfolders.push({root:file,path:file_full_path,subfolder:[]});
+	    let subfolder = {root:file,path:file_full_path,subfolder:[]};
+    	    if(show_folder_list.indexOf(file) != -1){
+            	subfolders.unshift(subfolder);
+	    }
+	    else {
+            	subfolders.push(subfolder);
+	    }
         }
     });
     //    }
