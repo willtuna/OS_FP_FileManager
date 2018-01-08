@@ -6,59 +6,151 @@
     <link rel="stylesheet" href="./bootstrap-3.3.7-dist/css/bootstrap.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="container" id="root">
-    <div class="col-md-2">
+<body class="background">
+<div class="container " id="root">
+    <div class="col-md-3 hidden-xs hidden-sm hidden-md">
+
         <div class="col-md-12 col-xs-12" style="margin-top:20px;">
-            <div class="row">
-                <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-chevron-left"></span> Left
-                </button>
-                <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-chevron-right"></span> Right
+            <div class="row ">
+                <button type="button" class="btn btn-default btn-sm block middle" @click="leftTurn">
+                    <i class="glyphicon glyphicon-chevron-left "></i>Left
                 </button>
             </div>
-	    <div class="sidebar">
+
+            <div class="row" style="overflow: scroll">
                 <tree
-                    class="tree"
-                    :model="treeData">
+                        class="tree"
+                        :model="treeData">
                 </tree>
-	    </div>
+            </div>
 
         </div>
     </div>
-    <div class="col-md-10">
-        <div class="col-md-12 col-xs-12" style="margin-top:20px;">
+    <div class="col-md-9">
+        <div class="col-md-12  " style="margin-top:20px;">
             <div class="input-group">
                 <span class="input-group-addon" id="basic-addon3">Current Position</span>
-                <input type="text" class="form-control" :placeholder="CurrentLocation" v-model="UserInput">
+                <input type="text" class="form-control" :placeholder="CurrentLocation" v-model="UserInput"
+                       v-on:keyup.enter="getTree(UserInput)">
                 <span class="input-group-btn">
                     <button class="btn btn-default" type="button" @click="getTree(UserInput)">Go!</button>
                 </span>
             </div>
         </div>
+        <!--
         <div class="col-md-12 col-xs-12" style="margin-top:20px;">
             <v-table :filelist="filelist"></v-table>
+        </div>
+        -->
+
+        <div class="col-md-12 col-xs-12" style="margin-top:20px;">
+            <v-client-table :data=$store.state.filelist :columns="columns" :options="options">
+                <i slot='type' slot-scope="props" class="glyphicon "
+                   v-bind:class="$store.getters.fileIcon(props.index -1)"></i>
+                <template slot="operation" slot-scope="props">
+                    <button type="button" class="btn btn-primary btn-xm btn-default">Info</button>
+                    <button type="button" class="btn btn-danger btn-xm btn-default" @click="$store.commit('OpenDelete',$store.state.current_location+'/'+props.row.filename)">
+                        Dele</button>
+                    <button type="button" class="btn btn-warning btn-xm btn-default"
+                            @click="$store.commit('OpenEncrypt',$store.state.current_location+'/'+props.row.filename)">
+                        Encrypt
+                    </button>
+                </template>
+            </v-client-table>
+        </div>
+
+        <button type="button" class="btn btn-default btn-circle btn-lg pull-right" @click="modelToggle"><i
+                class="glyphicon glyphicon-plus"></i></button>
+    </div>
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">New File</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">FileName</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">New</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EncryptModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <h3 class="modal-title ">Encrypt File</h3>
+                </div>
+                <div class="panel-body">
+                    <form id="EncryptForm">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">FileName</label>
+                            <input type="text" class="form-control" v-model="$store.state.encrypt.filename">
+                            <label for="recipient-name" class="control-label">Password</label>
+                            <input type="text" class="form-control" v-model="$store.state.encrypt.passward">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button  type="button" class="btn btn-warning" @click="encrypt">
+                        Encrypt&nbsp<i v-bind:class="{ 'glyphicon': $store.state.processing,'glyphicon-send': $store.state.processing}" class=""></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="modal-title ">Delete</h3>
+                </div>
+                <div class="panel-body">
+                    You are going to delete<br>
+                    <b>{{$store.state.delete.filename}}</b>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button  type="button" class="btn btn-danger" @click="delete_">
+                        Delete<i v-bind:class="{ 'glyphicon': $store.state.processing,'glyphicon-send': $store.state.processing}" class=""></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
 <script src="Vue/vue.js"></script>
 <script src="Vue/vuex.js"></script>
 
 
+<script src="vue-tables-2.min.js"></script>
+
 
 <script type="text/x-template" id="tree-template">
-    <li class = 'list-group-item'>
-        <div
-                :class="tree"
-                @click="toggle">
-	    <a role="menuitem" href="#">
-            {{model.root}}
-	    </a>
+    <li class='list-group-item'>
+        <div :class="tree">
+            <a role="menuitem" @click="goDirectory(model.path)">
+                {{model.root}}
+            </a>
         </div>
-        <ul  v-if="isFolder">
+        <ul v-if="isFolder">
             <tree
                     class="tree list-group-item "
                     v-for="model in model.subfolder"
@@ -72,28 +164,38 @@
 <script type="text/x-template" id="table">
     <table class="table table-bordered table-hover table-striped table-foldersystem">
         <thead>
-        <tr>
+        <tr class="white">
             <th></th>
             <th>Name</th>
             <th>Operation</th>
-
         </tr>
         </thead>
         <tbody>
 
-        <tr v-for="file in filelist">
-            <td><i class="glyphicon glyphicon-film"></i></td>
+        <tr class="white" v-for="(file, index) in filelist">
+            <td><i class="glyphicon" v-bind:class="fileIcon(index)"></i></td>
             <td>{{file.filename}}</td>
-            <td><button type="button" class="btn btn-xs btn-default">Default</button></td>
+            <td>
+                <button type="button" class="btn btn-primary btn-xm btn-default">Info</button>
+                <button type="button" class="btn btn-danger btn-xm btn-default">Dele</button>
+                <button type="button" class="btn btn-warning btn-xm btn-default"
+                        @click="encrypt($store.state.current_location+'/'+file.filename)">Encrypt
+                </button>
+            </td>
         </tr>
-
 
 
         </tbody>
     </table>
 
 </script>
+
 <script>
+    var bus = new Vue();
+    const ClientTable = VueTables.ClientTable
+    const Event = VueTables.Event // import eventbus
+    Vue.use(ClientTable)
+
     Vue.component('tree', {
         template: '#tree-template',
         props: {
@@ -106,53 +208,129 @@
         },
         computed: {
             isFolder: function () {
-                return this.model.subfolder&&
+                return this.model.subfolder &&
                     this.model.subfolder.length
-            }
+            },
         },
         methods: {
-            toggle: function () {
-                if (this.isFolder) {
-                    this.open = !this.open
-                }
+            goDirectory: function (path) {
+                console.log("Execute goDirectory");
+                console.log(this);
+                bus.$emit('gettree_c', path);
             },
         }
     });
-
     var listdata = [
-            {filename:'app.js'},
-            {filename:'node_modules'},
-            {filename:'app.js'},
-            {filename:'app.js'},
-        ]
+        {filename: 'app.js'},
+        {filename: 'node_modules'},
+        {filename: 'app.js'},
+        {filename: 'app.js'},
+    ]
 
-    Vue.component('v-table', {
-        template: '#table',
-        props: {
-            filelist:''
-        }
-    })
     const store = new Vuex.Store({
         state: {
             filelist: listdata,
-            current_location:'C:/',
+            current_location: 'C:/',
+            encrypt: {
+                filename :'',
+                passward :''
+            },
+            delete:{
+                filename:''
+            },
+            processing :true,
+            show_passward :true
+        },
+        getters: {
+            fileIcon: function (state) {
+                return function (index) {
+                    console.log(index);
+                    //console.log(state.filelist[index].filename[0]);
+                    if (state.filelist[index].filename[0] == '.') {
+                        state.filelist.splice(index,1)
+                        return 'glyphicon-folder-open'
+                    }
+
+                    let filetype = state.filelist[index].filename.split('.')
+                    if (filetype.length == 1) {
+                        return 'glyphicon-folder-open'
+                    }
+                    console.log(filetype)
+                    let bootstrap_class = {
+                        image: 'glyphicon-picture',
+                        dir: 'glyphicon-folder-open',
+                        file: 'glyphicon-file'
+                    }
+                    let gly_class = 'glyphicon-picture'
+                    switch (filetype[1]) {
+                        case 'jpg':
+                            gly_class = bootstrap_class.image
+                            break
+                        case 'js':
+                            gly_class = bootstrap_class.file
+                            break
+                        default:
+                            gly_class = bootstrap_class.file
+                    }
+                    return gly_class
+                }
+
+            }
+        },
+        mutations: {
+            OpenEncrypt(state, parameter) {
+                $('#EncryptModal').modal('toggle')
+                state.encrypt.filename = parameter
+            },
+            OpenDelete(state, parameter) {
+                $('#DeleteModal').modal('toggle')
+                state.delete.filename = parameter
+            },
+            SendEncrypt(state){
+                console.log(state.encrypt)
+                axios({
+                    method: 'post',
+                    url: '/api/encrypt',
+                    data: state.encrypt
+                }).then(function (response) {
+                    console.log(response)
+                    $('#EncryptModal').modal('toggle')
+
+                })
+            },
+            SendDelete(state){
+                console.log(state.delete)
+
+            }
+
+        },
+        actions: {
+            async SendEncrypt({commit}){
+                commit('SendEncrypt')
+            },
+            async Delete({commit}){
+                commit('SendDelete')
+            }
         }
 
     })
     var vm = new Vue({
         el: '#root',
         store,
-        methods:{
+        methods: {
             getroot: function (path) {
                 let vm = this;
                 axios.get(path)
                     .then(function (response) {
-                        console.log(response);
+//                        console.log(response);
                         vm.$store.state.filelist = response.data
                     })
             },
             getUserInput: function (path) {
-              let vm = this;
+                this.$store.state.current_location = path
+                this.UserInput = path
+                this.history.push(path)
+                let vm = this;
                 axios.get('/api/userInput', {
                     params: {
                         path: path
@@ -160,7 +338,7 @@
                 })
                     .then(function (response) {
                         vm.$store.state.filelist = response.data;
-                        console.log(response);
+//                        console.log(response);
                     })
                     .catch(function (error) {
                         console.log(error);
@@ -168,6 +346,7 @@
 
             },
             getTree: function (path) {
+
                 let vm = this;
                 this.getUserInput(path);
                 axios.get('/api/visit_dir', {
@@ -177,32 +356,71 @@
                 })
                     .then(function (response) {
                         vm.treeData = response.data;
-                        console.log(response);
+//                        console.log(response);
                     })
                     .catch(function (error) {
                         console.log(error);
                     });
             },
+            leftTurn: function () {
+                let path = this.history[this.history.length - 2]
+                Vue.delete(this.history, this.history.length - 1)
+                Vue.delete(this.history, this.history.length - 1)
+                this.getUserInput(path);
+//                alert(obj.dir)
+
+            },
+            modelToggle: function () {
+                $('#myModal').modal('toggle')
+            },
+            encrypt:async function () {
+                await this.$store.dispatch('SendEncrypt')
+                this.getroot(this.$store.state.current_location)
+
+            },
+            delete_:async function(){
+                await this.$store.dispatch('Delete')
+                this.getTree(this.$store.state.current_location)
+            }
+
 
         },
         computed: {
-            filelist () {
+            filelist() {
                 return this.$store.state.filelist
             },
-            CurrentLocation(){
+            CurrentLocation() {
                 return this.$store.state.current_location
-            },
+            }
+
         },
         created: function () {
             // `this` points to the vm instance
             this.getroot('/api/root');
-            this.$store.state.current_location = "/home/ubuntu/OS_FP_FileManager/OS_final"
-            this.UserInput = this.$store.state.current_location
+            this.$store.state.current_location = "/home/jimmy/OS_FP_FileManager/OS_final"
+            this.UserInput = this.$store.state.current_location;
+            this.getTree(this.UserInput);
+            bus.$on('gettree_c', function (path) {
+
+                this.getTree(path)
+
+            }.bind(this));
+
         },
-        data:{
-            UserInput:'',
-            treeData:''
-        }
+        data: {
+            UserInput: '',
+            treeData: '',
+            history: [],
+            columns: ['type', 'filename', 'operation'],
+            options: {
+                headings: {
+                    type: 'type',
+                    filename: 'name',
+                    operation: 'Operation'
+                },
+                sortable: ['filename']
+            }
+        },
     })
 
 

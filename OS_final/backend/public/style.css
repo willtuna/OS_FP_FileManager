@@ -11,7 +11,7 @@ div.treeview {
     min-height: 100px;
 
     max-height: 256px;
-    overflow:auto;
+
 
     padding: 4px;
 
@@ -33,11 +33,11 @@ div.treeview ul:first-child:before {
     color: #369;
 }
 .treeview ul {
-    margin-left:0.5em;
+    margin-left:0.1em;
     position:relative
 }
 .treeview ul ul {
-    margin-left:.5em
+    margin-left:.1em
 }
 .treeview ul:before {
     content:"";
@@ -53,7 +53,7 @@ div.treeview ul:first-child:before {
 }
 .treeview li {
     margin:0;
-    padding:0 0.5em;
+    padding:0 0.1em;
     line-height:2em;
     font-weight:700;
     position:relative
@@ -90,21 +90,83 @@ div.treeview ul:first-child:before {
     outline: 0;
 }
 ul {
-    width: 140px;
-    padding-left: 0em;
+    background: none;
+    width: 20em;
+    padding-left: 0.1em;
     line-height: 1.5em;
+    overflow:visible;
 }
-
+.list-group-item{
+    background: rgba(255,255,255,0.5);
+    color: #000000;
+}
+.list-group-item a{
+    color: #000000;
+}
 .list-group-item a:hover{
-    background: #e8500e;
+
+    /*background: #fff;*/
     color:#fff;
 }
 .list-group-item li:hover{
-    background: #e8500e;
-    cursor: pointer:
+    background: rgba(200,200,200,0.8);
+    cursor: pointer;
 }
 .col-md-2{
     position:relative;
     left: 0px;
     top:0em;
+}
+
+body{margin:40px;}
+
+
+.btn-circle {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.428571429;
+    border-radius: 15px;
+}
+.btn-circle.btn-lg {
+    width: 50px;
+    height: 50px;
+    padding: 10px 16px;
+    font-size: 18px;
+    line-height: 1.33;
+    border-radius: 25px;
+}
+.btn-circle.btn-xl {
+    width: 70px;
+    height: 70px;
+    padding: 10px 16px;
+    font-size: 24px;
+    line-height: 1.33;
+    border-radius: 35px;
+}
+.background{
+    background: url("images/line-figure-polygon-black-and-white.jpg")
+}
+.middle{
+    margin: 0 auto;
+}
+.block{
+    display: block;
+}
+.white{
+    background: white;
+}
+table td {
+    background: white;
+}
+table th {
+    background: white;
+}
+.VueTables__search {
+    color: white;
+}
+.VueTables__search input{
+    margin: 1em;
 }
