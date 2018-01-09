@@ -147,7 +147,9 @@ body{margin:40px;}
     border-radius: 35px;
 }
 .background{
-    background: url("images/line-figure-polygon-black-and-white.jpg")
+    background: url("images/line-figure-polygon-black-and-white.jpg");
+    /*background-repeat: no-repeat;*/
+    background-size: 100vw 100vh;
 }
 .middle{
     margin: 0 auto;
@@ -169,4 +171,10 @@ table th {
 }
 .VueTables__search input{
     margin: 1em;
+}
+canvas{
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:-1;
 }

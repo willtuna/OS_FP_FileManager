@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="./bootstrap-3.3.7-dist/css/bootstrap.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="background">
+<body class="">
 <div class="container " id="root">
-    <div class="col-md-3 hidden-xs hidden-sm hidden-md">
+    <div class="col-md-4 hidden-xs hidden-sm hidden-md">
 
         <div class="col-md-12 col-xs-12" style="margin-top:20px;">
             <div class="row ">
@@ -26,12 +26,12 @@
 
         </div>
     </div>
-    <div class="col-md-9">
+    <div class="col-md-8">
         <div class="col-md-12  " style="margin-top:20px;">
             <div class="input-group">
                 <span class="input-group-addon" id="basic-addon3">Current Position</span>
                 <input type="text" class="form-control" :placeholder="CurrentLocation" v-model="UserInput"
-                       v-on:keyup.enter="getTree(UserInput)">
+                       v-on:keydown.enter="getTree(UserInput)">
                 <span class="input-group-btn">
                     <button class="btn btn-default" type="button" @click="getTree(UserInput)">Go!</button>
                 </span>
@@ -48,7 +48,8 @@
                 <i slot='type' slot-scope="props" class="glyphicon "
                    v-bind:class="$store.getters.fileIcon(props.index -1)"></i>
                 <template slot="operation" slot-scope="props">
-                    <button type="button" class="btn btn-primary btn-xm btn-default">Info</button>
+
+                    <button type="button" class="btn btn-primary btn-xm btn-default" @click="$store.commit('OpenInfo',$store.state.current_location+'/'+props.row.filename)">Info</button>
                     <button type="button" class="btn btn-danger btn-xm btn-default" @click="$store.commit('OpenDelete',$store.state.current_location+'/'+props.row.filename)">
                         Dele</button>
                     <button type="button" class="btn btn-warning btn-xm btn-default"
@@ -59,46 +60,99 @@
             </v-client-table>
         </div>
 
-        <button type="button" class="btn btn-default btn-circle btn-lg pull-right" @click="modelToggle"><i
+        <button type="button" class="btn btn-default btn-circle btn-lg pull-right" @click="$store.commit('OpenNewDir')"><i
+                class="glyphicon glyphicon-folder-open"></i></button>
+        <button type="button" class="btn btn-default btn-circle btn-lg pull-right" @click="$store.commit('OpenNewFile')"><i
                 class="glyphicon glyphicon-plus"></i></button>
     </div>
 
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal fade" id="InfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="modal-title ">File Info</h3>
+                </div>
+                <div class="panel-body">
+                    <label  class="control-label">FileName</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.fileName" >
+                    <label  class="control-label">fileType</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.fileType" disabled>
+                    <label  class="control-label">lastCreatedTime</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.lastCreatedTime" disabled>
+                    <label  class="control-label">lastModifiedTime</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.lastModifiedTime" disabled>
+                    <label  class="control-label">path</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.path" disabled>
+                    <label  class="control-label">size</label>
+                    <input type="text" class="form-control" v-model="$store.state.fileInfo.content.size" disabled>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button  type="button" class="btn btn-warning" @click="rename">
+                        Rename&nbsp<i v-bind:class="{ 'glyphicon': $store.state.processing,'glyphicon-send': $store.state.processing}" class=""></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="NewDirModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="exampleModalLabel">New File</h4>
+                    <h4 class="modal-title " id="exampleModalLabel"><b>Create Dir</b></h4>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="NewDirForm" onSubmit="return false;">
                         <div class="form-group">
-                            <label for="recipient-name" class="control-label">FileName</label>
-                            <input type="text" class="form-control" id="recipient-name">
+                            <label for="recipient-name" class="control-label">DirName</label>
+                            <input type="text" class="form-control" v-model="$store.state.new_Dir.filename_temp">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">New</button>
+                    <button @click="new_Dir" type="button" class="btn btn-primary">NewDir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="NewFileModal" tabindex="-1" role="dialog" >
+        <div class="modal-dialog" >
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4 class="modal-title " ><b>Create File</b></h4>
+                </div>
+                <div class="panel-body">
+                    <form id="NewFileForm" onSubmit="return false;">
+                        <div class="form-group">
+                            <label  class="control-label">FileName</label>
+                            <input type="text" class="form-control" v-model="$store.state.new_file.filename_temp">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button"   class="btn btn-primary" @click="new_file">New</button>
                 </div>
             </div>
         </div>
     </div>
     <div class="modal fade" id="EncryptModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog">
             <div class="panel panel-warning">
                 <div class="panel-heading">
                     <h3 class="modal-title ">Encrypt File</h3>
                 </div>
                 <div class="panel-body">
-                    <form id="EncryptForm">
+                    <form id="EncryptForm" onSubmit="return false;">
                         <div class="form-group">
-                            <label for="recipient-name" class="control-label">FileName</label>
+                            <label  class="control-label">FileName</label>
                             <input type="text" class="form-control" v-model="$store.state.encrypt.filename">
-                            <label for="recipient-name" class="control-label">Password</label>
-                            <input type="text" class="form-control" v-model="$store.state.encrypt.passward">
+                            <label  class="control-label">Password</label>
+                            <input type="text" class="form-control" v-model="$store.state.encrypt.password">
                         </div>
                     </form>
                 </div>
@@ -132,7 +186,14 @@
     </div>
 </div>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/trianglify/0.4.0/trianglify.min.js"></script>
+<script>
+    var pattern = Trianglify({
+        width: window.innerWidth,
+        height: 5*window.innerHeight
+    });
+    document.body.appendChild(pattern.canvas())
+</script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
@@ -161,35 +222,6 @@
 </script>
 
 
-<script type="text/x-template" id="table">
-    <table class="table table-bordered table-hover table-striped table-foldersystem">
-        <thead>
-        <tr class="white">
-            <th></th>
-            <th>Name</th>
-            <th>Operation</th>
-        </tr>
-        </thead>
-        <tbody>
-
-        <tr class="white" v-for="(file, index) in filelist">
-            <td><i class="glyphicon" v-bind:class="fileIcon(index)"></i></td>
-            <td>{{file.filename}}</td>
-            <td>
-                <button type="button" class="btn btn-primary btn-xm btn-default">Info</button>
-                <button type="button" class="btn btn-danger btn-xm btn-default">Dele</button>
-                <button type="button" class="btn btn-warning btn-xm btn-default"
-                        @click="encrypt($store.state.current_location+'/'+file.filename)">Encrypt
-                </button>
-            </td>
-        </tr>
-
-
-        </tbody>
-    </table>
-
-</script>
-
 <script>
     var bus = new Vue();
     const ClientTable = VueTables.ClientTable
@@ -214,8 +246,8 @@
         },
         methods: {
             goDirectory: function (path) {
-                console.log("Execute goDirectory");
-                console.log(this);
+//                console.log("Execute goDirectory");
+//                console.log(this);
                 bus.$emit('gettree_c', path);
             },
         }
@@ -233,18 +265,34 @@
             current_location: 'C:/',
             encrypt: {
                 filename :'',
-                passward :''
+                password :''
             },
             delete:{
                 filename:''
             },
             processing :true,
-            show_passward :true
+            show_password :true,
+            new_file:{
+                filename:'',
+                filename_temp:''
+            },
+            new_Dir:{
+                filename:'',
+                filename_temp:''
+            },
+            fileInfo:{
+                filename:'',
+                content:''
+            },
+            reName:{
+                filename:'',
+                rename:''
+            }
         },
         getters: {
             fileIcon: function (state) {
                 return function (index) {
-                    console.log(index);
+//                    console.log(index);
                     //console.log(state.filelist[index].filename[0]);
                     if (state.filelist[index].filename[0] == '.') {
                         state.filelist.splice(index,1)
@@ -255,7 +303,7 @@
                     if (filetype.length == 1) {
                         return 'glyphicon-folder-open'
                     }
-                    console.log(filetype)
+//                    console.log(filetype)
                     let bootstrap_class = {
                         image: 'glyphicon-picture',
                         dir: 'glyphicon-folder-open',
@@ -279,6 +327,7 @@
         },
         mutations: {
             OpenEncrypt(state, parameter) {
+                state.encrypt.password = ''
                 $('#EncryptModal').modal('toggle')
                 state.encrypt.filename = parameter
             },
@@ -286,30 +335,121 @@
                 $('#DeleteModal').modal('toggle')
                 state.delete.filename = parameter
             },
-            SendEncrypt(state){
-                console.log(state.encrypt)
+            OpenNewFile(state,){
+                $('#NewFileModal').modal('toggle')
+            },
+            OpenNewDir(state,){
+                $('#NewDirModal').modal('toggle')
+            },
+            OpenInfo(state,parameter){
+                state.fileInfo.filename = parameter
+                $('#InfoModal').modal('toggle')
                 axios({
                     method: 'post',
-                    url: '/api/encrypt',
-                    data: state.encrypt
+                    url: '/api/getFileInfo',
+                    data: state.fileInfo
                 }).then(function (response) {
-                    console.log(response)
-                    $('#EncryptModal').modal('toggle')
+                    state.fileInfo.content = response.data
+                    state.reName.filename = state.current_location+'/'+state.fileInfo.content.fileName
 
+                    console.log(response.data)
                 })
-            },
-            SendDelete(state){
-                console.log(state.delete)
-
             }
+
 
         },
         actions: {
-            async SendEncrypt({commit}){
-                commit('SendEncrypt')
+            SendEncrypt({commit,state}){
+                var promise = new Promise((resolve, reject)=>{
+                    console.log(state.encrypt)
+                    axios({
+                        method: 'post',
+                        url: '/api/encrypt',
+                        data: state.encrypt
+                    }).then(function (response) {
+                        console.log(response)
+                        return resolve(response.data)
+                    })
+                })
+                return promise
             },
-            async Delete({commit}){
-                commit('SendDelete')
+            Delete({commit,state}){
+                console.log(state.delete)
+                let filetype = state.delete.filename.split('.')
+                if (filetype.length == 1) {//沒有副檔名
+                    var promise = new Promise((resolve, reject)=>{
+                        axios({
+                            method: 'post',
+                            url: '/api/deleteDir',
+                            data: state.delete
+                        }).then(function (response) {
+                            console.log(response)
+                            return resolve(response.data)
+                        })
+                    })
+                    return promise
+
+                }
+                else{
+                    var promise = new Promise((resolve, reject)=>{
+                        axios({
+                            method: 'post',
+                            url: '/api/deleteFile',
+                            data: state.delete
+                        }).then(function (response) {
+                            return resolve(response.data)
+                            console.log(response)
+                        })
+
+                    })
+                    return promise
+
+                }
+            },
+            CreateFile({commit,state}){
+                var promise = new Promise((resolve, reject)=>{
+                    console.log(state.new_file)
+                    state.new_file.filename = state.current_location + '/'+state.new_file.filename_temp
+                    axios({
+                        method: 'post',
+                        url: '/api/createFile',
+                        data: state.new_file
+                    }).then(function (response) {
+                        console.log(response)
+                        return resolve(response.data)
+                    })
+                })
+                return promise
+            },
+            CreateDir({commit,state}){
+                var promise = new Promise((resolve, reject)=>{
+                    console.log(state.new_Dir)
+                    state.new_Dir.filename = state.current_location + '/'+state.new_Dir.filename_temp
+                    axios({
+                        method: 'post',
+                        url: '/api/createDir',
+                        data: state.new_Dir
+                    }).then(function (response) {
+                        console.log(response)
+                        return resolve(response.data)
+                    })
+                })
+                return promise
+            },
+            RenameFile({commit,state}){
+                var promise = new Promise((resolve, reject)=>{
+                    console.log(state.reName)
+                    state.reName.rename = state.current_location + '/'+state.fileInfo.content.fileName
+                    axios({
+                        method: 'post',
+                        url: '/api/renameFile',
+                        data: state.reName
+                    }).then(function (response) {
+                        console.log(response)
+                        return resolve(response.data)
+                    })
+                })
+                return promise
             }
         }
 
@@ -320,11 +460,30 @@
         methods: {
             getroot: function (path) {
                 let vm = this;
-                axios.get(path)
+                axios.get('/api/userInput', {
+                    params: {
+                        path: path
+                    }
+                })
                     .then(function (response) {
+                        vm.$store.state.filelist = response.data;
 //                        console.log(response);
-                        vm.$store.state.filelist = response.data
                     })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                axios.get('/api/visit_dir', {
+                    params: {
+                        path: path
+                    }
+                })
+                    .then(function (response) {
+                        vm.treeData = response.data;
+//                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
             },
             getUserInput: function (path) {
                 this.$store.state.current_location = path
@@ -338,6 +497,18 @@
                 })
                     .then(function (response) {
                         vm.$store.state.filelist = response.data;
+//                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                axios.get('/api/visit_dir', {
+                    params: {
+                        path: path
+                    }
+                })
+                    .then(function (response) {
+                        vm.treeData = response.data;
 //                        console.log(response);
                     })
                     .catch(function (error) {
@@ -367,20 +538,46 @@
                 Vue.delete(this.history, this.history.length - 1)
                 Vue.delete(this.history, this.history.length - 1)
                 this.getUserInput(path);
+
 //                alert(obj.dir)
 
             },
-            modelToggle: function () {
-                $('#myModal').modal('toggle')
-            },
             encrypt:async function () {
                 await this.$store.dispatch('SendEncrypt')
+                $('#EncryptModal').modal('toggle')
                 this.getroot(this.$store.state.current_location)
 
             },
             delete_:async function(){
                 await this.$store.dispatch('Delete')
-                this.getTree(this.$store.state.current_location)
+                console.log('Delete finish')
+                $('#DeleteModal').modal('toggle')
+                this.getroot(this.$store.state.current_location)
+            },
+            new_file:async function(){
+                await this.$store.dispatch('CreateFile')
+                console.log('CreatFile Finish')
+                $('#NewFileModal').modal('toggle')
+                this.getroot(this.$store.state.current_location)
+            },
+            new_Dir:async function(){
+                await this.$store.dispatch('CreateDir')
+                console.log('CreatDir Finish')
+                $('#NewDirModal').modal('toggle')
+                this.getroot(this.$store.state.current_location)
+            },
+            getInfo:async function(){
+                $('#InfoModal').modal('toggle')
+                await this.$store.dispatch('GetFileInfo')
+                console.log('Get Info Finish')
+                $('#InfoModal').modal('toggle')
+//                this.getroot(this.$store.state.current_location)
+            },
+            rename:async function(){
+                await this.$store.dispatch('RenameFile')
+                console.log('RenameFile Finish')
+                $('#InfoModal').modal('toggle')
+                this.getroot(this.$store.state.current_location)
             }
 
 
@@ -395,9 +592,11 @@
 
         },
         created: function () {
+
             // `this` points to the vm instance
-            this.getroot('/api/root');
-            this.$store.state.current_location = "/home/jimmy/OS_FP_FileManager/OS_final"
+            this.$store.state.current_location = "/home/jimmy/OS_FP_FileManager/OS_final/TestSandBox"
+            this.getroot(this.$store.state.current_location);
+
             this.UserInput = this.$store.state.current_location;
             this.getTree(this.UserInput);
             bus.$on('gettree_c', function (path) {

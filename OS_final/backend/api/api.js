@@ -175,11 +175,22 @@ module.exports = (function () {
              */
             var json_obj = JSON.parse(stdout);
             res.json(json_obj);
-            res.sendStatus(200);
+
         });
 
     });
-
+    router.post('/api/renameFile', (req, res) => {
+        console.log('renameFile:', req.body)
+        var targetFilePath = req.body.filename
+        var targetFilePath_rename = req.body.rename
+        const child_deleteFile = execFile('python', ['operation/rename.py', targetFilePath,targetFilePath_rename], (error, stdout, stderr) => {
+            if (error) {
+                throw error;
+            }
+            console.log(stdout);
+            res.sendStatus(200);
+        });
+    });
     return router;
 })();
 
